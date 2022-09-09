@@ -41,9 +41,6 @@ def preprocess_dataset(data: pd.DataFrame):
 
     for is_raining in [0, 1]:
         temp_df = data_df[data_df['RainTomorrow'] == is_raining]
-
-        temp_df['Date'] = temp_df['Date'].fillna(temp_df['Date'].mode()[0])
-        temp_df['Location'] = temp_df['Location'].fillna(temp_df['Location'].mode()[0])
         temp_df['WindGustDir'] = temp_df['WindGustDir'].fillna(temp_df['WindGustDir'].mode()[0])
         temp_df['WindDir9am'] = temp_df['WindDir9am'].fillna(temp_df['WindDir9am'].mode()[0])
         temp_df['WindDir3pm'] = temp_df['WindDir3pm'].fillna(temp_df['WindDir3pm'].mode()[0])
@@ -77,16 +74,19 @@ FEATURES = ['Location', 'MinTemp', 'MaxTemp', 'Rainfall', 'Evaporation', 'Sunshi
                        'Humidity3pm', 'Pressure9am', 'Pressure3pm', 'Cloud9am', 'Cloud3pm', 'Temp9am', 'Temp3pm', 
                        'RainToday']
 
-data = preprocess_dataset(data=data)
 
 target = 'RainTomorrow'
 
-X_train, X_test, y_train, y_test = train_test_split(data, data[target], test_size=0.2, random_state=13)
+X_train, X_test, y_train, y_test = train_test_split(data, data[target], test_size=0.3, random_state=13)
+
+X_train = preprocess_dataset(data=X_train)
+X_test = preprocess_dataset(data=X_test)
 
 X_train = apply_oversampling(data= X_train)
 
 y_train = X_train[target]
 X_train = X_train[FEATURES]
+y_test = X_test[target]
 X_test = X_test[FEATURES]
 
 
@@ -127,41 +127,47 @@ print(roc_auc)
 print(classification_report(y_test,y_pred,digits=5))
 
 
-filename = 'model_09_08.sav'
+filename = 'model_19_08.sav'
 pickle.dump(clf, open('models/' + filename, 'wb'))
 
 
 
 """"
+------------------------------- CASE 1 : 70/30 -------------------------------------
 
     Dataset split Train 70% / Test 30%
     Scores généré sont : 
     accuracy => 0.8973683394811072
     roc_auc => 0.8651836705828564
-    classification report => 
-                                precision    recall  f1-score   support
 
-                            0.0    0.94214   0.92405   0.93300    24950
-                            1.0    0.75674   0.80632   0.78074     7311
+   ------------------- classification report -------------------------- 
+                precision    recall  f1-score   support
 
-                    accuracy                           0.89737    32261
-                    macro avg      0.84944   0.86518   0.85687    32261
-                    weighted avg   0.90012   0.89737   0.89850    32261
-    ---------------------------------------------------------------------------
+         0.0    0.93971   0.92291   0.93123     24996
+         1.0    0.75675   0.80201   0.77872      7475
+
+    accuracy                        0.89508     32471
+   macro avg    0.84823   0.86246   0.85498     32471
+weighted avg    0.89759   0.89508   0.89613     32471
+
+------------------------------------------------------------------------------ 
+------------------------------- CASE 1 : 80/20 -------------------------------------
 
     Dataset split Train 80% / Test 20%
     Scores généré sont : 
     accuracy => 0.8997535686055703
     roc_auc => 0.8662161076595627
-    classification report => 
-                                          precision    recall  f1-score   support
 
-                                    0.0    0.94180   0.92764   0.93467     16625
-                                    1.0    0.76559   0.80479   0.78470      4882
+   ------------------- classification report -------------------------- 
+    
+               precision    recall  f1-score   support
 
-                                accuracy                       0.89975     21507
-                            macro avg      0.85369   0.86622   0.85968     21507
-                            weighted avg   0.90180   0.89975   0.90063     21507
+         0.0    0.93865   0.92330   0.93091     16637
+         1.0    0.75640   0.79783   0.77656      4966
+
+    accuracy                        0.89446     21603
+   macro avg    0.84752   0.86056   0.85374     21603
+weighted avg    0.89675   0.89446   0.89543     21603
 
 
 """
